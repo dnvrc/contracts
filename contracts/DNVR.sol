@@ -18,23 +18,47 @@ contract DNVR is ERC20, Ownable {
   mapping (address => uint256) balances;
   mapping (address => mapping (address => uint256)) internal allowed;
 
-  uint256 totalSupply_;
+  uint256 _totalSupply;
+  bool paused;
 
-  event Transfer(address indexed _from, address indexed _to, uint256 _value);
   event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+  event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
-  constructor() public {
-    totalSupply_ = 1000000;
-    balances[owner] = totalSupply_;
-    unitsOneEthCanBuy = 10;
+  modifier whenNotPaused(){
+    require(!paused);
+    _;
   }
 
-  function fund() external payable { }
+  constructor() public {
+    _totalSupply = 100;
+    balances[owner] = _totalSupply;
+    unitsOneEthCanBuy = 1;
+
+    pause();
+  }
+
+  function fund() external payable {
+    /* balances[owner] =  SafeMath.sub(balances[owner], 100); */
+    /* balances[msg.sender] = 100; */
+
+    balances[msg.sender] = msg.value;
+  }
 
   function kill() external onlyOwner {
     selfdestruct(owner);
   }
 
+  function getPaused() public view returns (bool) {
+    return paused;
+  }
+
+  function pause() public onlyOwner {
+      paused = true;
+  }
+
+  function unpause() public onlyOwner {
+      paused = false;
+  }
 
   /* Approves and then calls the receiving contract */
   function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
@@ -52,7 +76,7 @@ contract DNVR is ERC20, Ownable {
    * @dev total number of tokens in existence
    */
   function totalSupply() public view returns (uint256) {
-    return totalSupply_;
+    return _totalSupply;
   }
 
   /**
