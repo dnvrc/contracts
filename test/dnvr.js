@@ -47,6 +47,12 @@ contract('dnvr', (accounts) => {
     const conBal = await contract.balanceOf(investrAccount);
     const conEthr = web3.fromWei(conBal, "ether");
     assert.equal(conEthr, 1);
+
+    // Check the balance of the owner
+    const ownBal = await contract.balanceOf(fundingAccount);
+    const ownEthr = web3.fromWei(ownBal, "ether");
+    console.log(`owner balance: ${ownBal}`);
+    assert.equal(ownEthr, 9.9e-17);
   });
 
   it('#totalSupply', async () => {
