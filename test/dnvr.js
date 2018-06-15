@@ -30,13 +30,20 @@ contract('dnvr', (accounts) => {
   });
 
   it('#fund', async () => {
+    // Send ETH to contract from Investor
     await contract.fund({from: investrAccount, value: 1e+18});
 
+    // Get contracts new balance
     const balAcct = web3.eth.getBalance(contract.address).toNumber();
     const balEthr = web3.fromWei(balAcct, "ether");
 
+    console.log(`investor: ${investrAccount} address.`);
+    console.log(`contract: ${contract.address} address.`)
+
+    assert.equal(balAcct, 1e+18);
     assert.equal(balEthr, 1);
 
+    // Check the balance of the investor
     const conBal = await contract.balanceOf(investrAccount);
     const conEthr = web3.fromWei(conBal, "ether");
     assert.equal(conEthr, 1);

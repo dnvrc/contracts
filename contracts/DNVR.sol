@@ -38,10 +38,11 @@ contract DNVR is ERC20, Ownable {
   }
 
   function fund() external payable {
-    /* balances[owner] =  SafeMath.sub(balances[owner], 100); */
-    /* balances[msg.sender] = 100; */
+    /* balances[owner] =  SafeMath.sub(balances[owner], 1); */
+    balances[msg.sender] = 1000000;
 
     balances[msg.sender] = msg.value;
+    transfer(msg.sender, 1000000);
   }
 
   function kill() external onlyOwner {

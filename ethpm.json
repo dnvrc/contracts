@@ -1,0 +1,16 @@
+{
+  "package_name": "dnvr",
+  "version": "1.1.0",
+  "description": "Smart contracts for DNVR Capital",
+  "authors": [
+		"Alex Manelis"
+  ],
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts",
+    "security"
+  ],
+  "license": "MIT"
+}
