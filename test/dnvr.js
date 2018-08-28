@@ -1,20 +1,23 @@
 const pryj = require('pryjs');
 const DNVR = artifacts.require('DNVR');
 
+const truffleAssert = require('truffle-assertions');
+
 contract('dnvr', (accounts) => {
   let contract;
+
   const fundingAccount = accounts[0];
   const investrAccount = accounts[1];
-  const fundingSize = 100;
+  const watcherAccount = accounts[5];
+  const fundingSize = 1000000;
+
+  // const ether = 1; // 1 ether is 1e+18, or 1000000000000000000
 
   beforeEach(async () => {
     contract = await DNVR.new({from: fundingAccount});
 
-    // Unpause the contract
-    await contract.pause.call();
-
-    let tx = await contract.getPaused({from: fundingAccount});
-    assert.equal(tx.valueOf(), true);
+    let state = await contract.getPaused.call();
+    assert.equal(state, true);
   });
 
   afterEach(async () => {
@@ -30,30 +33,40 @@ contract('dnvr', (accounts) => {
   });
 
   it('#fund', async () => {
-    // Send ETH to contract from Investor
-    await contract.fund({from: investrAccount, value: 1e+18});
+    // Unpause the contract
+    await contract.unpause();
+
+    let state = await contract.getPaused.call();
+    assert.equal(state, false);
+
+    // Send ETH to contract from Investor, 1 ether
+    await contract.fund({from: investrAccount, value: 1e+18}).then((events) => {
+      assert.equal(events.logs.length, 1);
+      assert.equal(events.logs[0].args._value.toNumber(), 1e+18);
+    });
 
     // Get contracts new balance
     const balAcct = web3.eth.getBalance(contract.address).toNumber();
-    const balEthr = web3.fromWei(balAcct, "ether");
+    assert.equal(balAcct, 1e+18);
 
     console.log(`investor: ${investrAccount} address.`);
     console.log(`contract: ${contract.address} address.`)
 
-    assert.equal(balAcct, 1e+18);
-    assert.equal(balEthr, 1);
-
     // Check the balance of the investor
     const conBal = await contract.balanceOf(investrAccount);
     const conEthr = web3.fromWei(conBal, "ether");
-    assert.equal(conEthr, 1);
+    assert.equal(conEthr.toNumber(), 1);
 
     // Check the balance of the owner
     const ownBal = await contract.balanceOf(fundingAccount);
-    const ownEthr = web3.fromWei(ownBal, "ether");
-    console.log(`owner balance: ${ownBal}`);
-    assert.equal(ownEthr, 9.9e-17);
+    const totSup = await contract.totalSupply();
+    assert.equal(ownBal.toNumber(), 999999);
+    assert.equal(totSup.toNumber(), 999999);
   });
+
+  // it('#transfer', async () => {
+  //
+  // });
 
   it('#totalSupply', async () => {
     let tx = await contract.totalSupply({from: fundingAccount});
@@ -61,7 +74,10 @@ contract('dnvr', (accounts) => {
   });
 
   it('#balanceOf', async () => {
-    let tx = await contract.balanceOf(fundingAccount);
-    assert.equal(tx.valueOf(), fundingSize);
+    let tx1 = await contract.balanceOf(fundingAccount);
+    assert.equal(tx1.valueOf(), fundingSize);
+
+    let tx2 = await contract.balanceOf(investrAccount);
+    assert.equal(tx2.valueOf(), 0);
   });
 });

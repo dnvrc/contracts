@@ -11,38 +11,43 @@ contract DNVR is ERC20, Ownable {
   string public constant symbol = "DNVR";
   string public constant version = "H1.0";
   uint8 public constant decimals = 18;
-
-  uint256 public unitsOneEthCanBuy;     // How many units of your coin can be bought by 1 ETH?
-  uint256 public totalEthInWei;         // WEI is the smallest unit of ETH (the equivalent of cent in USD or satoshi in BTC). We'll store the total ETH raised via our ICO here.
+  uint256 public unitsOneEthCanBuy = 500;
 
   mapping (address => uint256) balances;
   mapping (address => mapping (address => uint256)) internal allowed;
 
-  uint256 _totalSupply;
-  bool paused;
+  uint256 _totalSupply = 1000000;
+  bool paused = true;
 
   event Approval(address indexed _owner, address indexed _spender, uint256 _value);
   event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
-  modifier whenNotPaused(){
+  modifier whenNotPaused() {
     require(!paused);
     _;
   }
 
-  constructor() public {
-    _totalSupply = 100;
-    balances[owner] = _totalSupply;
-    unitsOneEthCanBuy = 1;
+  modifier whenPaused() {
+    require(paused);
+    _;
+  }
 
-    pause();
+  constructor() public {
+    balances[owner] = _totalSupply;
+
+    emit Transfer(address(0), owner, _totalSupply);
   }
 
   function fund() external payable {
-    balances[owner] =  SafeMath.sub(balances[owner], 1);
-    balances[msg.sender] = 1000000;
+    /* require(!paused); */
+    require(msg.value > 0);
 
-    balances[msg.sender] = msg.value;
-    transfer(msg.sender, 1000000);
+    balances[owner] = SafeMath.sub(balances[owner], 1);
+    balances[msg.sender] = SafeMath.add(balances[msg.sender], msg.value);
+
+    _totalSupply = SafeMath.sub(_totalSupply, 1);
+
+    transfer(msg.sender, balances[msg.sender]);
   }
 
   function kill() external onlyOwner {
@@ -53,24 +58,24 @@ contract DNVR is ERC20, Ownable {
     return paused;
   }
 
-  function pause() public onlyOwner {
-      paused = true;
+  function pause() public onlyOwner whenNotPaused {
+    paused = true;
   }
 
-  function unpause() public onlyOwner {
-      paused = false;
+  function unpause() public onlyOwner whenPaused {
+    paused = false;
   }
 
   /* Approves and then calls the receiving contract */
   function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
-      allowed[msg.sender][_spender] = _value;
-      emit Approval(msg.sender, _spender, _value);
+    allowed[msg.sender][_spender] = _value;
+    emit Approval(msg.sender, _spender, _value);
 
-      //call the receiveApproval function on the contract you want to be notified. This crafts the function signature manually so one doesn't have to include a contract in here just for this.
-      //receiveApproval(address _from, uint256 _value, address _tokenContract, bytes _extraData)
-      //it is assumed that when does this that the call *should* succeed, otherwise one would use vanilla approve instead.
-      if(!_spender.call(bytes4(bytes32(keccak256("receiveApproval(address,uint256,address,bytes)"))), msg.sender, _value, this, _extraData)) { revert(); }
-      return true;
+    //call the receiveApproval function on the contract you want to be notified. This crafts the function signature manually so one doesn't have to include a contract in here just for this.
+    //receiveApproval(address _from, uint256 _value, address _tokenContract, bytes _extraData)
+    //it is assumed that when does this that the call *should* succeed, otherwise one would use vanilla approve instead.
+    if(!_spender.call(bytes4(bytes32(keccak256("receiveApproval(address,uint256,address,bytes)"))), msg.sender, _value, this, _extraData)) { revert(); }
+    return true;
   }
 
   /**
@@ -180,7 +185,7 @@ contract DNVR is ERC20, Ownable {
     returns (bool)
   {
     allowed[msg.sender][_spender] = (
-      allowed[msg.sender][_spender].add(_addedValue));
+    allowed[msg.sender][_spender].add(_addedValue));
     emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
     return true;
   }

@@ -32,6 +32,7 @@
     "solidity-coverage": "^0.5.4",
     "style-loader": "^0.13.2",
     "truffle": "^4.0.3",
+    "truffle-assertions": "^0.2.0",
     "web3": "^0.18.4",
     "webpack": "^2.7.0",
     "webpack-dev-server": "^2.9.3"
