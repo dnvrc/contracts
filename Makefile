@@ -2,7 +2,8 @@
 
 help:
 	@echo "  coverage       		generate coverage report"
-	@echo "  deployable       	generate contract abi and bytecode"
+	@echo "  deployable       		generate contract abi and bytecode"
+	@echo "	 test 					run truffle tests"
 
 coverage:
 	./node_modules/.bin/solidity-coverage
