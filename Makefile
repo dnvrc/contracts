@@ -9,3 +9,6 @@ coverage:
 
 deployable:
 	truffle test deployable.js
+
+test:
+	truffle test
