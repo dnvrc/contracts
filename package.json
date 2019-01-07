@@ -35,7 +35,7 @@
     "truffle-assertions": "^0.2.0",
     "web3": "^0.18.4",
     "webpack": "^2.7.0",
-    "webpack-dev-server": "^2.9.3"
+    "webpack-dev-server": "^3.1.11"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
